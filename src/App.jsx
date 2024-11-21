@@ -15,7 +15,7 @@ const router = createBrowserRouter([
     element: <HomeLayout />,
     errorElement: <Error />,
     children: [
-      { index: true, element: <LandingPage /> },
+      { index: true, element: <Landing /> },
       {
         path: "/register",
         element: <Register />,
