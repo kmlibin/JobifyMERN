@@ -14,6 +14,18 @@ import {
   Admin,
 } from "./pages";
 
+
+//checks and applies for landing,login,error pages. in dashboard we will call the function separately
+export const checkDefaultTheme = () => {
+  //checking as true as string because we didn't set a key/value..or are they just always strings?
+  const isDarkTheme = localStorage.getItem('darkTheme') === "true";
+  document.body.classList.toggle('dark-theme', isDarkTheme);
+  return isDarkTheme;
+};
+
+
+checkDefaultTheme()
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -31,7 +43,7 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        element: <DashboardLayout />,
+        element: <DashboardLayout/>,
         children: [
           { index: true, element: <AddJob /> },
           { path: "stats", element: <Stats /> },
