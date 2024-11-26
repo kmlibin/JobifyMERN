@@ -1,73 +1,56 @@
-import { nanoid } from "nanoid";
+import Job from "../models/JobModel.js";
+import { StatusCodes } from "http-status-codes";
+import { NotFoundError } from "../errors/customErrors.js";
 
-let jobs = [
-    { id: nanoid(), company: "apple", position: "frontend" },
-    { id: nanoid(), company: "company2", position: "backend" },
-  ];
+export const getAllJobs = async (req, res) => {
+  //not doing try/catch because we have express-async-errors that sends errors to our synchronous error handling in server.js
+  const jobs = await Job.find({});
+  res.status(StatusCodes.OK).json({ jobs });
+};
 
-
-  export const getAllJobs = async(req, res) => {
-    res.status(200).json({jobs})
+//create
+export const createJob = async (req, res) => {
+  const { company, position } = req.body;
+  try {
+    const job = await Job.create({ company, position });
+    res.status(StatusCodes.CREATED).json({ job });
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "server error" });
   }
-  
-  export const createJob = async(req, res) => {
-    const { company, position } = req.body;
-    if (!company || !position) {
-      return res
-        .status(400)
-        .json({ message: "please provide company and position" });
-    }
-    //since not connected to db, pushing manually to array
-    const id = nanoid(10);
-    const job = { id, company, position };
-    //since not connected to db, pushing manually to array
-    jobs.push(job);
-  
-    res.status(201).json({ job });
+};
+//get single job by id
+export const getJob = async (req, res) => {
+  const { id } = req.params;
+  const job = await Job.findById(id);
+  if (!job) {
+    throw new NotFoundError(`Job not found with that id ${id}`);
   }
+  res.status(StatusCodes.OK).json({ job });
+};
 
-  export const getJob = async(req, res) => {
-    const { id } = req.params;
-    const job = jobs.find((job) => job.id === id);
-    if (!job) {
-      return res
-        .status(404)
-        .json({ message: `Job not found with that id ${id}` });
-    }
-  
-    res.status(200).json({ job });
-  }
-
-  export const editJob = async(req, res) => {
-    const { id } = req.params;
-    const { company, position } = req.body;
-    if (!company || !position) {
-      return res.status(400).json({ message: "please provide job and company" });
-    }
-    const job = jobs.find((job) => job.id === id);
-    if (!job) {
-      return res
-        .status(404)
-        .json({ message: `Job not found with that id ${id}` });
-    }
-    job.company = company;
-    job.position = position;
-  
-    res.status(200).json({ message: "job modified", job });
+//edit job
+export const editJob = async (req, res) => {
+  const { id } = req.params;
+  //will check for empty values, so will just pass req.body. otherwise pass object with what needs changing
+  const updatedJob = await Job.findByIdAndUpdate(id, req.body, { new: true });
+  //so, since no try/catch, if something goes wrong with the process of deleting, i assume that gets thrown and generically caught
+  if (!updatedJob) {
+    throw new NotFoundError(`no job with that id`);
   }
 
-  export const deleteJob = async(req, res) => {
-    const { id } = req.params;
+  res.status(StatusCodes.OK).json({ message: "job modified", job: updatedJob });
+};
 
-    const job = jobs.find((job) => job.id === id);
-    if (!job) {
-      return res
-        .status(404)
-        .json({ message: `Job not found with that id ${id}` });
-    }
-  
-    const newJobs = jobs.filter((job) => job.id !== id);
-    jobs = newJobs;
-  
-    res.status(200).json({ message: "job has been deleted" });
+//delete job
+export const deleteJob = async (req, res) => {
+  const { id } = req.params;
+  const removedJob = await Job.findByIdAndDelete(id);
+  //so, since no try/catch, if something goes wrong with the process of deleting, i assume that gets thrown and generically caught
+  if (!removedJob) {
+    throw new NotFoundError(`no job with that id`);
   }
+
+  res.status(StatusCodes.OK).json({ message: "job has been deleted" });
+};
