@@ -23,10 +23,9 @@ export const createJob = async (req, res) => {
 //get single job by id
 export const getJob = async (req, res) => {
   const { id } = req.params;
+  //still grab job, even though it's done in middleware. middleware is just checking that it exists, it's not sending it along
   const job = await Job.findById(id);
-  if (!job) {
-    throw new NotFoundError(`Job not found with that id ${id}`);
-  }
+
   res.status(StatusCodes.OK).json({ job });
 };
 
@@ -36,9 +35,10 @@ export const editJob = async (req, res) => {
   //will check for empty values, so will just pass req.body. otherwise pass object with what needs changing
   const updatedJob = await Job.findByIdAndUpdate(id, req.body, { new: true });
   //so, since no try/catch, if something goes wrong with the process of deleting, i assume that gets thrown and generically caught
-  if (!updatedJob) {
-    throw new NotFoundError(`no job with that id`);
-  }
+  //now handled in middleware
+  // if (!updatedJob) {
+  //   throw new NotFoundError(`no job with that id`);
+  // }
 
   res.status(StatusCodes.OK).json({ message: "job modified", job: updatedJob });
 };
@@ -48,9 +48,10 @@ export const deleteJob = async (req, res) => {
   const { id } = req.params;
   const removedJob = await Job.findByIdAndDelete(id);
   //so, since no try/catch, if something goes wrong with the process of deleting, i assume that gets thrown and generically caught
-  if (!removedJob) {
-    throw new NotFoundError(`no job with that id`);
-  }
+  //now in middleware where it checks if job exists. if if it doesn't, this won't run
+  // if (!removedJob) {
+  //   throw new NotFoundError(`no job with that id`);
+  // }
 
   res.status(StatusCodes.OK).json({ message: "job has been deleted" });
 };
