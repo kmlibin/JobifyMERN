@@ -1,9 +1,12 @@
+import 'express-async-errors'
 import * as dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
 const app = express();
 import morgan from "morgan";
+import mongoose from "mongoose";
+import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
 
 //routers
 import jobRouter from "./routes/jobRoutes.js";
@@ -26,17 +29,20 @@ app.use("*", (req, res) => {
   res.status(404).json({ message: "not found" });
 });
 
-//error middleware. HAS to be the last one
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: "something went wrong" });
-});
+//error middleware. HAS to be the last one. for SYNCHRONOUS errors. 
+app.use(errorHandlerMiddleware);
 
 //set up port variable
 const port = process.env.PORT || 4100;
-
-app.listen(port, () => {
-  console.log("server running on port 5100");
-});
+try {
+  await mongoose.connect(process.env.MONGO_URL);
+  app.listen(port, () => {
+    console.log("server running on port 5100");
+  });
+} catch (error) {
+  console.log(error);
+  process.exit(1)
+}
 
 //sample simple server using local data
 // import * as dotenv from "dotenv";
