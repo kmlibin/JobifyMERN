@@ -1,6 +1,7 @@
-import { body, validationResult } from "express-validator";
+import { body, param, validationResult } from "express-validator";
 import { BadRequestError } from "../errors/customErrors.js";
 import { JOB_STATUS, JOB_TYPE } from "../utils/constants.js";
+import mongoose from "mongoose";
 
 //these don't seem to work, they don't throw correct errors although error is thrown and it's a 400 ALL the time
 //want to validate tests, and create a function that handles error
@@ -31,6 +32,15 @@ export const validateJobInput = withValidationErrors([
   body("jobType")
     .isIn(Object.values(JOB_TYPE))
     .withMessage("Job typeis required"),
+]);
+
+export const validateIdParam = withValidationErrors([
+  param("id")
+  //if this returns true, then it's fine and we sent to controller.
+  ///it's kind of confusing to see where all the errors come from. if you do one less value in the id, this runs. if it's the same length, 
+  //the 404 runs that we set up with id not found we set up in the controller
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid ID"),
 ]);
 
 //this will be different for every controller, there will be different things that we will validate in each controller
