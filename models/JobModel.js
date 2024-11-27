@@ -20,6 +20,10 @@ const JobSchema = new mongoose.Schema(
       type: String,
       default: "my city",
     },
+    createdBy: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+    }
     //mongodb already puts id in there
     //timestamps: true will have a createdAt and updatedAt fieldd
   },
