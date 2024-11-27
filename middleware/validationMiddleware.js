@@ -3,6 +3,7 @@ import { BadRequestError, NotFoundError } from "../errors/customErrors.js";
 import { JOB_STATUS, JOB_TYPE } from "../utils/constants.js";
 import mongoose from "mongoose";
 import Job from "../models/JobModel.js";
+import User from "../models/UserModel.js";
 
 //these don't seem to work, they don't throw correct errors although error is thrown and it's a 400 ALL the time
 //want to validate tests, and create a function that handles error
@@ -38,6 +39,34 @@ export const validateJobInput = withValidationErrors([
     .withMessage("Job typeis required"),
 ]);
 
+//check that only one email is used!
+export const validateRegisterInput = withValidationErrors([
+  body("name").notEmpty().withMessage("name is required"),
+  body("email")
+    .notEmpty()
+    .withMessage("email is required")
+    .isEmail()
+    .withMessage("please provide a valid email address")
+    .custom(async (email) => {
+      const user = await User.findOne({ email });
+      if (user) {
+        throw new BadRequestError("email already exists on site");
+      }
+    }),
+  body("location").notEmpty().withMessage("must include a location"),
+  body("lastName").notEmpty().withMessage("please include a last name"),
+  body("password")
+    .notEmpty()
+    .withMessage("please provide a password")
+    .isLength({ min: 8 })
+    .withMessage("password must be at least 8 characters"),
+]);
+
+export const validateLoginInput = withValidationErrors([
+  body("email").notEmpty().withMessage("please provide email"),
+  body("password").notEmpty().withMessage("please enter password"),
+]);
+
 export const validateIdParam = withValidationErrors([
   param("id")
     //if this returns true, then it's fine and we sent to controller.
@@ -49,7 +78,7 @@ export const validateIdParam = withValidationErrors([
     //custom value is async. so, remember it returns a promise
     .custom(async (value) => {
       const isValidId = mongoose.Types.ObjectId.isValid(value);
-     
+
       //if false, this message doesn't show - the "BadRequest" from above gets used with the generic errorMessage that I don't set
       if (!isValidId)
         throw new BadRequestError(`no job found with id ${id}, BadReqfrom: VM`);
