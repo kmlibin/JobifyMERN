@@ -1,4 +1,4 @@
-import 'express-async-errors'
+import "express-async-errors";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -6,10 +6,11 @@ import express from "express";
 const app = express();
 import morgan from "morgan";
 import mongoose from "mongoose";
-import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
+import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 
 //routers
 import jobRouter from "./routes/jobRoutes.js";
+import userRouter from "./routes/userRoutes.js";
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -23,13 +24,14 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/jobs", jobRouter);
+app.use("/api/v1/auth", userRouter);
 
 //if a route/page isn't found. needs to run after all routes, because order matters for routes (recall)
 app.use("*", (req, res) => {
   res.status(404).json({ message: "not found" });
 });
 
-//error middleware. HAS to be the last one. for SYNCHRONOUS errors. 
+//error middleware. HAS to be the last one. for SYNCHRONOUS errors.
 app.use(errorHandlerMiddleware);
 
 //set up port variable
@@ -41,7 +43,7 @@ try {
   });
 } catch (error) {
   console.log(error);
-  process.exit(1)
+  process.exit(1);
 }
 
 //sample simple server using local data
