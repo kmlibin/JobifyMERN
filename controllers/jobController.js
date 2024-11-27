@@ -1,18 +1,21 @@
 import Job from "../models/JobModel.js";
 import { StatusCodes } from "http-status-codes";
-import { NotFoundError } from "../errors/customErrors.js";
 
+//auth middleware is applied to all these routes in server
 export const getAllJobs = async (req, res) => {
+  const { user } = req.user;
   //not doing try/catch because we have express-async-errors that sends errors to our synchronous error handling in server.js
-  const jobs = await Job.find({});
+  //onnly provide jobs that belong to a specific user
+  const jobs = await Job.find({ createdBy: user });
   res.status(StatusCodes.OK).json({ jobs });
 };
 
 //create
 export const createJob = async (req, res) => {
-  const { company, position } = req.body;
+  //adding the createdBy to the req.body so logged in user is associated with that job
+  req.body.createdBy = req.user.user
   try {
-    const job = await Job.create({ company, position });
+    const job = await Job.create(req.body);
     res.status(StatusCodes.CREATED).json({ job });
   } catch (error) {
     res
@@ -20,7 +23,7 @@ export const createJob = async (req, res) => {
       .json({ message: "server error" });
   }
 };
-//get single job by id
+//get single job by id. validating id matches person who created the job in validations
 export const getJob = async (req, res) => {
   const { id } = req.params;
   //still grab job, even though it's done in middleware. middleware is just checking that it exists, it's not sending it along
@@ -29,7 +32,7 @@ export const getJob = async (req, res) => {
   res.status(StatusCodes.OK).json({ job });
 };
 
-//edit job
+//edit job validating id matches person who created the job in validations
 export const editJob = async (req, res) => {
   const { id } = req.params;
   //will check for empty values, so will just pass req.body. otherwise pass object with what needs changing
