@@ -6,15 +6,22 @@ import express from "express";
 const app = express();
 import morgan from "morgan";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 
 //routers
 import jobRouter from "./routes/jobRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 
+//middleware
+import { authenticateUser } from "./middleware/authMiddleware.js";
+
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+
+//cookies
+app.use(cookieParser())
 
 //how you get access to the req object
 app.use(express.json());
@@ -23,7 +30,8 @@ app.get("/", (req, res) => {
   res.send("...home page");
 });
 
-app.use("/api/v1/jobs", jobRouter);
+//all job routes will need authentication, so do here instead of in routes for simplicity
+app.use("/api/v1/jobs", authenticateUser, jobRouter);
 app.use("/api/v1/auth", userRouter);
 
 //if a route/page isn't found. needs to run after all routes, because order matters for routes (recall)
