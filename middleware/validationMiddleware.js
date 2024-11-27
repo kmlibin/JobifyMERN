@@ -1,5 +1,5 @@
 import { body, param, validationResult } from "express-validator";
-import { BadRequestError, NotFoundError } from "../errors/customErrors.js";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors/customErrors.js";
 import { JOB_STATUS, JOB_TYPE } from "../utils/constants.js";
 import mongoose from "mongoose";
 import Job from "../models/JobModel.js";
@@ -17,6 +17,9 @@ const withValidationErrors = (validateValues) => {
         const errorMessages = errors.array().map((error) => error.msg);
         if (errorMessages[0].startsWith("no job")) {
           throw new NotFoundError(errorMessages);
+        }
+        if(errorMessages[0].startsWith("user not")) {
+          throw new UnauthorizedError("user not authorized to access this route")
         }
         //use our status codes, pass errorMessages as the messages
         throw new BadRequestError(errorMessages);
@@ -67,6 +70,8 @@ export const validateLoginInput = withValidationErrors([
   body("password").notEmpty().withMessage("please enter password"),
 ]);
 
+//this validates the id param, which is how users find jobs
+//we need to make sure that job id is only found by the user id that created/owns that specific job. admin also allowed full access
 export const validateIdParam = withValidationErrors([
   param("id")
     //if this returns true, then it's fine and we sent to controller.
@@ -76,7 +81,7 @@ export const validateIdParam = withValidationErrors([
     //if that job isn't found
 
     //custom value is async. so, remember it returns a promise
-    .custom(async (value) => {
+    .custom(async (value, {req}) => {
       const isValidId = mongoose.Types.ObjectId.isValid(value);
 
       //if false, this message doesn't show - the "BadRequest" from above gets used with the generic errorMessage that I don't set
@@ -87,6 +92,11 @@ export const validateIdParam = withValidationErrors([
         throw new NotFoundError(
           `no job found with that id ${value} NotFound from: VM`
         );
+      }
+      const isAdmin = req.user.role === "admin"
+      const isOwner = req.user.user === job.createdBy.toString() //has to be converted to a string to work
+      if(!isAdmin && !isOwner) {
+        throw new UnauthorizedError('user not authorized to access this resource, 1')
       }
     }),
 ]);
