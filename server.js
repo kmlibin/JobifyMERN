@@ -11,7 +11,8 @@ import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 
 //routers
 import jobRouter from "./routes/jobRoutes.js";
-import userRouter from "./routes/userRoutes.js";
+import authRouter from "./routes/authRoutes.js";
+import userRouter from './routes/userRoutes.js'
 
 //middleware
 import { authenticateUser } from "./middleware/authMiddleware.js";
@@ -21,7 +22,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 //cookies
-app.use(cookieParser())
+app.use(cookieParser());
 
 //how you get access to the req object
 app.use(express.json());
@@ -32,7 +33,8 @@ app.get("/", (req, res) => {
 
 //all job routes will need authentication, so do here instead of in routes for simplicity
 app.use("/api/v1/jobs", authenticateUser, jobRouter);
-app.use("/api/v1/auth", userRouter);
+app.use("/api/v1/users", authenticateUser, userRouter);
+app.use("/api/v1/auth", authRouter);
 
 //if a route/page isn't found. needs to run after all routes, because order matters for routes (recall)
 app.use("*", (req, res) => {
