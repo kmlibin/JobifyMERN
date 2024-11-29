@@ -1,18 +1,14 @@
 import { Router } from "express";
-import {
-  loginUser,
-  logout,
-  registerUser,
-} from "../controllers/userController.js";
-import {
-  validateRegisterInput,
-  validateLoginInput,
-} from "../middleware/validationMiddleware.js";
+const router = Router()
 
-const router = Router();
+import { getCurrentUser, getApplicationStats, updateUser } from "../controllers/userController.js";
+import { validateUpdateUserInput } from "../middleware/validationMiddleware.js";
+import {authorizePermissions} from '../middleware/authMiddleware.js'
 
-router.post("/register", validateRegisterInput, registerUser);
-router.post("/login", validateLoginInput, loginUser);
-router.get("/logout", logout);
 
-export default router;
+//we already protected these routes in server.js - user already has to be authed to get here
+router.get('/current-user', getCurrentUser)
+router.get('/admin/app-stats', authorizePermissions("admin"), getApplicationStats)
+router.patch('/update-user', validateUpdateUserInput, updateUser)
+
+export default router
