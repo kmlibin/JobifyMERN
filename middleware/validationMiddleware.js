@@ -1,5 +1,9 @@
 import { body, param, validationResult } from "express-validator";
-import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors/customErrors.js";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../errors/customErrors.js";
 import { JOB_STATUS, JOB_TYPE } from "../utils/constants.js";
 import mongoose from "mongoose";
 import Job from "../models/JobModel.js";
@@ -18,8 +22,10 @@ const withValidationErrors = (validateValues) => {
         if (errorMessages[0].startsWith("no job")) {
           throw new NotFoundError(errorMessages);
         }
-        if(errorMessages[0].startsWith("user not")) {
-          throw new UnauthorizedError("user not authorized to access this route")
+        if (errorMessages[0].startsWith("user not")) {
+          throw new UnauthorizedError(
+            "user not authorized to access this route"
+          );
         }
         //use our status codes, pass errorMessages as the messages
         throw new BadRequestError(errorMessages);
@@ -65,6 +71,24 @@ export const validateRegisterInput = withValidationErrors([
     .withMessage("password must be at least 8 characters"),
 ]);
 
+export const validateUpdateUserInput = withValidationErrors([
+  body("name").notEmpty().withMessage("name is required"),
+  body("email")
+    .notEmpty()
+    .withMessage("email is required")
+    .isEmail()
+    .withMessage("please provide a valid email address")
+    .custom(async (email, { req }) => {
+      const user = await User.findOne({ email });
+      //
+      if (user && user._id.toString() !== req.user.userId) {
+        throw new BadRequestError("email already exists on site");
+      }
+    }),
+  body("location").notEmpty().withMessage("must include a location"),
+  body("lastName").notEmpty().withMessage("please include a last name"),
+]);
+
 export const validateLoginInput = withValidationErrors([
   body("email").notEmpty().withMessage("please provide email"),
   body("password").notEmpty().withMessage("please enter password"),
@@ -81,7 +105,7 @@ export const validateIdParam = withValidationErrors([
     //if that job isn't found
 
     //custom value is async. so, remember it returns a promise
-    .custom(async (value, {req}) => {
+    .custom(async (value, { req }) => {
       const isValidId = mongoose.Types.ObjectId.isValid(value);
 
       //if false, this message doesn't show - the "BadRequest" from above gets used with the generic errorMessage that I don't set
@@ -93,10 +117,12 @@ export const validateIdParam = withValidationErrors([
           `no job found with that id ${value} NotFound from: VM`
         );
       }
-      const isAdmin = req.user.role === "admin"
-      const isOwner = req.user.user === job.createdBy.toString() //has to be converted to a string to work
-      if(!isAdmin && !isOwner) {
-        throw new UnauthorizedError('user not authorized to access this resource, 1')
+      const isAdmin = req.user.role === "admin";
+      const isOwner = req.user.userId === job.createdBy.toString(); //has to be converted to a string to work
+      if (!isAdmin && !isOwner) {
+        throw new UnauthorizedError(
+          "user not authorized to access this resource, 1"
+        );
       }
     }),
 ]);
