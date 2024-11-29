@@ -19,4 +19,12 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
+//when we get back the user from the db, the password is on it. we don't want the password
+UserSchema.methods.toJSON = function () {
+  //transform our User to a js object
+  let obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
+
 export default mongoose.model("User", UserSchema);
