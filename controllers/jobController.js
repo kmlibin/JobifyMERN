@@ -3,17 +3,17 @@ import { StatusCodes } from "http-status-codes";
 
 //auth middleware is applied to all these routes in server
 export const getAllJobs = async (req, res) => {
-  const { user } = req.user;
+  const { userId } = req.user;
   //not doing try/catch because we have express-async-errors that sends errors to our synchronous error handling in server.js
   //onnly provide jobs that belong to a specific user
-  const jobs = await Job.find({ createdBy: user });
+  const jobs = await Job.find({ createdBy: userId });
   res.status(StatusCodes.OK).json({ jobs });
 };
 
 //create
 export const createJob = async (req, res) => {
   //adding the createdBy to the req.body so logged in user is associated with that job
-  req.body.createdBy = req.user.user
+  req.body.createdBy = req.user.userId
   try {
     const job = await Job.create(req.body);
     res.status(StatusCodes.CREATED).json({ job });
