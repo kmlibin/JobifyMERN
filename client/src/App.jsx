@@ -13,6 +13,7 @@ import {
   Profile,
   Admin,
 } from "./pages";
+import {action as registerAction} from './pages/Register'
 
 
 //checks and applies for landing,login,error pages. in dashboard we will call the function separately
@@ -36,6 +37,11 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <Register />,
+        action: registerAction,
+        // action: () => {
+        //   can write functions inline, like so, but must return sometihng! will run with form submission on the page.
+       
+        // }
       },
       {
         path: "login",
