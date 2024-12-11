@@ -1,14 +1,35 @@
 import React, { createContext, useContext, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, redirect, useLoaderData, useNavigate } from "react-router-dom";
 import Wrapper from "../assets/wrappers/Dashboard";
 import { BigSidebar, Navbar, SmallSidebar } from "../components";
 import { checkDefaultTheme } from "../App";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
 
-//set up contexxt
+//set up loader. this will be available BEFORE the component renders, it's like prefetching. useEffect only after the component renders.
+//to make it available in the component, then, we need useLoaderData
+export const loader = async () => {
+  //get userInfo, we aren't storing this data on the frontend. userId and role is stored in the cookie, and we keep that across our application
+  //controller uses userId from cookie to getch the current user, and that sends back the user object from our db
+  //if we are unable to get the current user, logout the user from the application
+  try {
+    const userObject = await customFetch.get("/users/current-user");
+    const { data } = userObject;
+    console.log(data);
+    //now have access to data
+    return data;
+  } catch (error) {
+    return redirect("/");
+  }
+};
+
+//set up context
 const DashboardContext = createContext();
 
 const DashboardLayout = () => {
-  const user = { name: "john" };
+  const navigate = useNavigate();
+  const { user } = useLoaderData();
+
   const [showSidebar, setShowSidebar] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(checkDefaultTheme());
 
@@ -28,7 +49,9 @@ const DashboardLayout = () => {
   };
 
   const logoutUser = async () => {
-    console.log("logout user");
+    navigate("/");
+    await customFetch.get("/auth/logout");
+    toast.success("Logging Out");
   };
 
   return (
@@ -49,7 +72,8 @@ const DashboardLayout = () => {
           <div>
             <Navbar />
             <div className="dashboard-page">
-              <Outlet />
+              {/* outlet has a context prop that you can pass, so here we are sharing the user*/}
+              <Outlet context={{ user }} />
             </div>
           </div>
         </main>
