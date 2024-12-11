@@ -3,7 +3,7 @@ import User from "../models/UserModel.js";
 import Job from "../models/JobModel.js";
 
 //remember when we logged in, we made token, we use auth middleware to verify it, if verified, create req.user prop,
-//on which there is user: {userId, role}
+//on which there is user: {userId, role}. token stored as a cookie, which has this information.
 export const getCurrentUser = async (req, res) => {
   const { userId } = req.user;
   const currentUser = await User.findOne({ _id: userId });
