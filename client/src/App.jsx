@@ -13,19 +13,18 @@ import {
   Profile,
   Admin,
 } from "./pages";
-import {action as registerAction} from './pages/Register'
-
+import { action as registerAction } from "./pages/Register";
+import { action as loginAction } from "./pages/Login";
 
 //checks and applies for landing,login,error pages. in dashboard we will call the function separately
 export const checkDefaultTheme = () => {
   //checking as true as string because we didn't set a key/value..or are they just always strings?
-  const isDarkTheme = localStorage.getItem('darkTheme') === "true";
-  document.body.classList.toggle('dark-theme', isDarkTheme);
+  const isDarkTheme = localStorage.getItem("darkTheme") === "true";
+  document.body.classList.toggle("dark-theme", isDarkTheme);
   return isDarkTheme;
 };
 
-
-checkDefaultTheme()
+checkDefaultTheme();
 
 const router = createBrowserRouter([
   {
@@ -40,16 +39,17 @@ const router = createBrowserRouter([
         action: registerAction,
         // action: () => {
         //   can write functions inline, like so, but must return sometihng! will run with form submission on the page.
-       
+
         // }
       },
       {
         path: "login",
         element: <Login />,
+        action: loginAction,
       },
       {
         path: "dashboard",
-        element: <DashboardLayout/>,
+        element: <DashboardLayout />,
         children: [
           { index: true, element: <AddJob /> },
           { path: "stats", element: <Stats /> },
