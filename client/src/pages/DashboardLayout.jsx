@@ -72,7 +72,7 @@ const DashboardLayout = () => {
           <div>
             <Navbar />
             <div className="dashboard-page">
-              {/* outlet has a context prop that you can pass, so here we are sharing the user*/}
+              {/* outlet has a context prop that you can pass, so here we are sharing the user. in component you want to use, use useOutletContext*/}
               <Outlet context={{ user }} />
             </div>
           </div>
