@@ -15,7 +15,8 @@ import {
 } from "./pages";
 import { action as registerAction } from "./pages/Register";
 import { action as loginAction } from "./pages/Login";
-import {loader as dashboardLoader} from './pages/DashboardLayout'
+import { action as addJobAction } from "./pages/AddJob";
+import { loader as dashboardLoader } from "./pages/DashboardLayout";
 
 //checks and applies for landing,login,error pages. in dashboard we will call the function separately
 export const checkDefaultTheme = () => {
@@ -53,7 +54,7 @@ const router = createBrowserRouter([
         element: <DashboardLayout />,
         loader: dashboardLoader,
         children: [
-          { index: true, element: <AddJob /> },
+          { index: true, element: <AddJob />, action: addJobAction },
           { path: "stats", element: <Stats /> },
           { path: "all-jobs", element: <AllJobs /> },
           { path: "profile", element: <Profile /> },
