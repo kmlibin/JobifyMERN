@@ -1,8 +1,8 @@
 import React from "react";
 import Wrapper from "../assets/wrappers/RegisterAndLoginPage";
 
-import { FormRow, Logo } from "../components";
-import { Form, redirect, useNavigation } from "react-router-dom";
+import { FormRow, Logo, SubmitButton } from "../components";
+import { Form, redirect } from "react-router-dom";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 
@@ -30,10 +30,7 @@ export const action = async ({ request }) => {
   }
 };
 
-
 const Register = () => {
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
   return (
     <Wrapper>
       {/* default is get, declare if otherwise. Form is linked to the action you've put in the App.jsx routes */}
@@ -70,9 +67,7 @@ const Register = () => {
           defaultValue="Secret890"
           labelText={"Password"}
         />
-        <button type="submit" className="btn btn-block" disabled={isSubmitting}>
-          {isSubmitting ? "submitting" : "submit"}
-        </button>
+        <SubmitButton />
         {/* <p>
           Already a member?
           <Link to="/login" className="member-btn">
