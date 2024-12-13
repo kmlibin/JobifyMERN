@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { checkForTestUser } from "../middleware/authMiddleware.js";
 import {
   validateJobInput,
   validateIdParam,
@@ -13,11 +14,11 @@ import {
   getJob,
 } from "../controllers/jobController.js";
 
-router.route("/").get(getAllJobs).post(validateJobInput, createJob);
+router.route("/").get(getAllJobs).post(checkForTestUser, validateJobInput, createJob);
 router
   .route("/:id")
   .get(validateIdParam, getJob)
-  .patch(validateJobInput, validateIdParam, editJob)
-  .delete(validateIdParam, deleteJob);
+  .patch(checkForTestUser, validateJobInput, validateIdParam, editJob)
+  .delete(checkForTestUser, validateIdParam, deleteJob);
 
 export default router;
