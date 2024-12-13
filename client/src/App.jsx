@@ -21,8 +21,9 @@ import { loader as dashboardLoader } from "./pages/DashboardLayout";
 import { loader as allJobsLoader } from "./pages/AllJobs";
 import { action as editJobAction } from "./pages/EditJob";
 import { loader as editJobLoader } from "./pages/EditJob";
-import {loader as adminLoader} from './pages/Admin'
+import { loader as adminLoader } from "./pages/Admin";
 import { action as deleteJobAction } from "./pages/DeleteJob";
+import { action as profileAction } from "./pages/Profile";
 
 //checks and applies for landing,login,error pages. in dashboard we will call the function separately
 export const checkDefaultTheme = () => {
@@ -63,8 +64,8 @@ const router = createBrowserRouter([
           { index: true, element: <AddJob />, action: addJobAction },
           { path: "stats", element: <Stats /> },
           { path: "all-jobs", element: <AllJobs />, loader: allJobsLoader },
-          { path: "profile", element: <Profile /> },
-          { path: "admin", element: <Admin />, loader: adminLoader},
+          { path: "profile", element: <Profile />, action: profileAction },
+          { path: "admin", element: <Admin />, loader: adminLoader },
           { path: "delete-job/:id", action: deleteJobAction },
           {
             path: "edit-job/:id",
