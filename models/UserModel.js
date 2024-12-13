@@ -17,6 +17,10 @@ const UserSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
+  avatar: {
+    type: String,
+  },
+  avatarPublicId: String,
 });
 
 //when we get back the user from the db, the password is on it. we don't want the password

@@ -7,6 +7,7 @@ const app = express();
 import morgan from "morgan";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+import cloudinary from "cloudinary";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 
 //routers
@@ -22,10 +23,17 @@ import path from "path";
 //middleware
 import { authenticateUser } from "./middleware/authMiddleware.js";
 
-//setting up public folder, this is eventually where our client folder will be. 
+//setting up public folder, this is eventually where our client folder will be.
 //we are settin gup public because we are utilizing uploads - this is where we will temporarily store our images
 const __dirname = dirname(fileURLToPath(import.meta.url));
-app.use(express.static(path.resolve(__dirname, './public')))
+app.use(express.static(path.resolve(__dirname, "./public")));
+
+//cloudinary setup
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
