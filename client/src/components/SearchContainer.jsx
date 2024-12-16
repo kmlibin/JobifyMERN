@@ -6,6 +6,10 @@ import { useAllJobsContext } from "../pages/AllJobs";
 
 //all jobs has the loader for filters
 const SearchContainer = () => {
+  const {searchValues} = useAllJobsContext()
+  const {search, jobStatus, jobType, sort} = searchValues
+  //useSubmit to link the inputs, makes them controlled inputs. on any change, it will resubmit the search
+  const submit = useSubmit();
   return (
     <Wrapper>
       <Form className="form">
@@ -16,31 +20,42 @@ const SearchContainer = () => {
           <FormRow
             type="search"
             name="search"
-            defaultValue="input search term"
+            defaultValue={search}
+            onChange={(e) => {
+              submit(e.currentTarget.form);
+            }}
           />
           <FormRowSelect
             labelText="job status"
             name="jobStatus"
             list={["all", ...Object.values(JOB_STATUS)]}
-            defaultValue="all"
+            defaultValue={jobStatus}
+            onChange={(e) => {
+              submit(e.currentTarget.form);
+            }}
           />
           <FormRowSelect
             labelText="job type"
             name="jobType"
             list={["all", ...Object.values(JOB_TYPE)]}
-            defaultValue="all"
+            defaultValue={jobType}
+            onChange={(e) => {
+              submit(e.currentTarget.form);
+            }}
           />
           <FormRowSelect
             name="sort"
-            defaultValue="newest"
+            defaultValue={sort}
             list={[...Object.values(JOB_SORT_BY)]}
+            onChange={(e) => {
+              submit(e.currentTarget.form);
+            }}
           />
           {/* //back to the same page, clears the params */}
           <Link to="/dashboard/all-jobs" className="btn form-btn delete-btn">
             Reset Search Values
           </Link>
 
-          <SubmitButton formBtn />
         </div>
       </Form>
     </Wrapper>
