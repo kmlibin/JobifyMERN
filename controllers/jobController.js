@@ -5,11 +5,56 @@ import day from "dayjs";
 
 //auth middleware is applied to all these routes in server
 export const getAllJobs = async (req, res) => {
+  const { search, jobStatus, jobType, sort } = req.query;
   const { userId } = req.user;
+  console.log("sort", sort);
+  const queryObject = {
+    createdBy: userId,
+  };
+
+  //will allow for some typos/similarities
+  if (search) {
+    queryObject.$or = [
+      { position: { $regex: search, $options: "i" } },
+      { company: { $regex: search, $options: "i" } },
+    ];
+  }
+  //if status doesn't = all, attach it to the query object. same w/jobtype
+  if (jobStatus && jobStatus !== "all") {
+    queryObject.jobStatus = jobStatus;
+  }
+
+  if (jobType && jobType !== "all") {
+    queryObject.jobType = jobType;
+  }
+
+  //setting up sort options for mongodob
+  const sortOptions = {
+    newest: "-createdAt",
+    oldest: "createdAt",
+    "a-z": "position",
+    "z-a": "-position",
+  };
+
+  const sortKey = sortOptions[sort] || sortOptions.newest;
+  //pagination
+  //incoming page from our request, default is page 1
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 5;
+  const skip = (page - 1) * limit;
+  console.log(queryObject);
   //not doing try/catch because we have express-async-errors that sends errors to our synchronous error handling in server.js
   //onnly provide jobs that belong to a specific user
-  const jobs = await Job.find({ createdBy: userId });
-  res.status(StatusCodes.OK).json({ jobs });
+  const jobs = await Job.find(queryObject)
+    .sort(sortKey)
+    .skip(skip)
+    .limit(limit);
+  const totalJobs = await Job.countDocuments(queryObject);
+  //need to return pages for pagination on frontend. math.ceiling bc always want to round up
+  const numOfPages = Math.ceil(totalJobs / limit);
+  res
+    .status(StatusCodes.OK)
+    .json({ totalJobs, numOfPages, currentPage: page, jobs });
 };
 
 //create
@@ -99,7 +144,7 @@ export const showStats = async (req, res) => {
   ]);
 
   monthlyApplications = monthlyApplications
-  //destructure the item
+    //destructure the item
     .map((item) => {
       const {
         _id: { year, month },
@@ -111,7 +156,7 @@ export const showStats = async (req, res) => {
         .month(month - 1)
         .year(year)
         .format("MMM YY");
-        //date and count are what's sent to the frontend
+      //date and count are what's sent to the frontend
       return { date, count };
     })
     .reverse();
