@@ -1,13 +1,17 @@
 import { toast } from "react-toastify";
 import { JobsContainer, SearchContainer } from "../components";
 import customFetch from "../utils/customFetch";
-import { useLoaderData, useOutletContext } from "react-router-dom";
+import { useLoaderData } from "react-router-dom";
 import { useContext, createContext } from "react";
 
 //fetch data before component loads, grab it and use it in the useLoaderData hook
 export const loader = async ({ request }) => {
+  //turns all query params into an object
+  const params = Object.fromEntries([
+    ...new URL(request.url).searchParams.entries(),
+  ]);
   try {
-    const  data = await customFetch.get("/jobs");
+    const data = await customFetch.get("/jobs", { params });
     console.log(data);
     return data;
   } catch (error) {
