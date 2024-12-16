@@ -1,5 +1,7 @@
 import Job from "../models/JobModel.js";
 import { StatusCodes } from "http-status-codes";
+import mongoose from "mongoose";
+import day from "dayjs";
 
 //auth middleware is applied to all these routes in server
 export const getAllJobs = async (req, res) => {
@@ -13,7 +15,7 @@ export const getAllJobs = async (req, res) => {
 //create
 export const createJob = async (req, res) => {
   //adding the createdBy to the req.body so logged in user is associated with that job
-  req.body.createdBy = req.user.userId
+  req.body.createdBy = req.user.userId;
   try {
     const job = await Job.create(req.body);
     res.status(StatusCodes.CREATED).json({ job });
@@ -57,4 +59,62 @@ export const deleteJob = async (req, res) => {
   // }
 
   res.status(StatusCodes.OK).json({ message: "job has been deleted" });
+};
+
+export const showStats = async (req, res) => {
+  let stats = await Job.aggregate([
+    //first stage is match stage, match jobs which belongs to a certain user. need to convert user id into string, hence mongoose.types
+    { $match: { createdBy: new mongoose.Types.ObjectId(req.user.userId) } },
+    //now group them and count them
+    { $group: { _id: "$jobStatus", count: { $sum: 1 } } },
+  ]);
+
+  //first param is what we return, current is the current iteration. we are taking the stats array and turning it into an object.
+  stats = stats.reduce((acc, curr) => {
+    const { _id: title, count } = curr;
+    acc[title] = count;
+    return acc;
+  }, {});
+
+  //set 0 as a check - if user just registered or have no jobs, return 0 to the frontend. frontend will also have checks.
+  const defaultStats = {
+    pending: stats.pending || 0,
+    interview: stats.interview || 0,
+    declined: stats.declined || 0,
+  };
+
+  let monthlyApplications = await Job.aggregate([
+    //match jobs to a specific user
+    { $match: { createdBy: new mongoose.Types.ObjectId(req.user.userId) } },
+    {
+      $group: {
+        //create object with two props, year and month. it pulls out the year and month, convenient mongodb thing
+        _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+        count: { $sum: 1 },
+      },
+    },
+    //get the latest month first
+    { $sort: { "_id.year": -1, "_id.month": -1 } },
+    { $limit: 6 },
+  ]);
+
+  monthlyApplications = monthlyApplications
+  //destructure the item
+    .map((item) => {
+      const {
+        _id: { year, month },
+        count,
+      } = item;
+
+      //format the date
+      const date = day()
+        .month(month - 1)
+        .year(year)
+        .format("MMM YY");
+        //date and count are what's sent to the frontend
+      return { date, count };
+    })
+    .reverse();
+
+  res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications });
 };
