@@ -10,6 +10,22 @@ const SearchContainer = () => {
   const {search, jobStatus, jobType, sort} = searchValues
   //useSubmit to link the inputs, makes them controlled inputs. on any change, it will resubmit the search
   const submit = useSubmit();
+
+  //delay so that every keystroke doesn't make a request to the backend. maintains a controlled input, see implementation in formRow componenets
+  //runs two seconds after last keystroke
+  const debounce = (onChange) => {
+    let timeout;
+    return (e) => {
+      const form = e.currentTarget.form;
+      //clear out prev
+      clearTimeout(timeout);
+    
+      timeout = setTimeout(() => {
+        onChange(form);
+      }, 2000);
+    };
+  };
+  
   return (
     <Wrapper>
       <Form className="form">
@@ -21,9 +37,9 @@ const SearchContainer = () => {
             type="search"
             name="search"
             defaultValue={search}
-            onChange={(e) => {
-              submit(e.currentTarget.form);
-            }}
+            onChange={debounce((form) => {
+              submit(form)
+            })}
           />
           <FormRowSelect
             labelText="job status"
